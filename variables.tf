@@ -1,3 +1,8 @@
+variable "module_enabled" {
+  description = "Trigger to enable/disable module."
+  default     = "true"
+}
+
 variable "project" {
   description = "Project name."
   default     = "project"
