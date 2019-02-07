@@ -27,12 +27,12 @@ resource "aws_wafregional_web_acl" "this" {
   metric_name = "${replace(local.resource_identifier, "/[^A-z]/", "")}WebACL"
 
   default_action {
-    type = "ALLOW"
+    type = "BLOCK"
   }
 
   rule {
     action {
-      type = "BLOCK"
+      type = "ALLOW"
     }
 
     priority = 1
