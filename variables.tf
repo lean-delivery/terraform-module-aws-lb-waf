@@ -25,5 +25,6 @@ variable "load_balancer_arn" {
 variable "whitelist" {
   description = "List of IP's (in CIDR format) to whitelist"
   default     = []
-  type        = "list"
+  type        = list(object({ type = string, value = string }))
 }
+
