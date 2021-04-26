@@ -27,6 +27,36 @@ resource "aws_wafregional_rule" "this" {
   }
 }
 
+resource "aws_wafregional_regex_match_set" "healthcheck" {
+  count = var.module_enabled ? 1 : 0
+  name  = "${replace(local.resource_identifier, "/[^A-z]/", "")}-healthcheck"
+  regex_match_tuple {
+    field_to_match {
+      type = "URI"
+    }
+    regex_pattern_set_id = aws_wafregional_regex_pattern_set.healthcheck[0].id
+    text_transformation  = "NONE"
+  }
+}
+
+resource "aws_wafregional_regex_pattern_set" "healthcheck" {
+  count                 = var.module_enabled ? 1 : 0
+  name                  = "${replace(local.resource_identifier, "/[^A-z]/", "")}-healthcheck"
+  regex_pattern_strings = ["^/ping$", "^/healthcheck$", "^/checkout-api/check-current-live-region$", "^/web-api/check-current-live-region$"]
+}
+
+resource "aws_wafregional_rule" "healthcheck_rule" {
+  count       = var.module_enabled ? 1 : 0
+  name        = "${replace(local.resource_identifier, "/[^A-z]/", "")}healthcheck"
+  metric_name = "${replace(local.resource_identifier, "/[^A-z]/", "")}healthcheck"
+
+  predicate {
+    type    = "RegexMatch"
+    data_id = aws_wafregional_regex_match_set.healthcheck[0].id
+    negated = false
+  }
+}
+
 resource "aws_wafregional_web_acl" "this" {
   count       = var.module_enabled ? 1 : 0
   name        = local.resource_identifier
@@ -43,6 +73,15 @@ resource "aws_wafregional_web_acl" "this" {
 
     priority = 1
     rule_id  = aws_wafregional_rule.this[0].id
+  }
+
+  rule {
+    action {
+      type = "ALLOW"
+    }
+
+    priority = 2
+    rule_id  = aws_wafregional_rule.healthcheck_rule[0].id
   }
 }
 
